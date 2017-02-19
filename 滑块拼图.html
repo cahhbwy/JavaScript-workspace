@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF8">
+		<title>Slide Puzzle</title>
+		<script type="text/javascript">
+			var size=4;
+			var groundsize;
+			var spaceX,spaceY;
+			var ground;
+			var blocks;
+			var timeid;
+			var oper;
+			var path;
+			var pathIndex;
+			var runState;
+			function initialGame(){
+				groundsize=Math.floor(Math.min(document.documentElement.clientWidth,document.documentElement.clientHeight)*0.8);
+				var newsize=parseInt(document.getElementById("inputSize").value);
+				if (isNaN(newsize)||newsize<3||newsize>10){
+					alert("请输入3到10的整数");
+					document.getElementById("inputSize").value=size;
+					return;
+				}
+				size=newsize;
+				spaceX=size-1,spaceY=size-1;
+				oper=new Array(size*size);
+				path=new Array();
+				pathIndex=0;
+				runState=false;
+				ground=document.getElementById("ground");
+				ground.innerHTML="";
+				blocks=new Array(size*size);
+				for(var i=0;i<size*size;){
+					blocks[i]=++i;
+				}
+				blocks[size*size-1]=0;
+				for(var i=0;i<Math.floor(size*size/4)*2;){
+					var p, q;
+					p = Math.floor(Math.random() * (size * size - 1));
+					q = Math.floor(Math.random() * (size * size - 1));
+					if (p != q) {
+						var temp = blocks[p];
+						blocks[p] = blocks[q];
+						blocks[q] = temp;
+						++i;
+					}
+				}
+				var buttonSize=Math.floor(groundsize/size)+"px";
+				groundsize=Math.floor(groundsize/size)*size;
+				ground.style.width=groundsize+"px";
+				ground.style.height=groundsize+"px";
+				for(var i=0;i<size;++i){
+					for(var j=0;j<size;++j){
+						var newButton=document.createElement("button");
+						newButton.id=blocks[i*size+j];
+						newButton.setAttribute("posX",i);
+						newButton.setAttribute("posY",j);
+						if(newButton.id!=0){
+							newButton.innerHTML=blocks[i*size+j];
+						}else{
+							newButton.disabled="true"
+							newButton.style.background="none";
+							newButton.style.border="none";
+						}
+						newButton.setAttribute("onclick","moveButton(this)");
+						newButton.style.width=buttonSize;
+						newButton.style.height=buttonSize;
+						newButton.style.fontSize=Math.floor(groundsize/size/2)+"px";
+						newButton.style.float="left";
+						ground.appendChild(newButton);
+					}
+				}
+			}
+			function moveButton(btn){
+				if(runState)	return;
+				posX=btn.getAttribute("posX");
+				posY=btn.getAttribute("posY");
+				if(posX==spaceX){
+					if(posY>spaceY){
+						for(var i=spaceY;i<posY;++i){
+							moveDirection(37);
+						}
+					}
+					if(posY<spaceY){
+						for(var i=spaceY;i>posY;--i){
+							moveDirection(39);
+						}
+					}
+				}
+				if(posY==spaceY){
+					if(posX>spaceX){
+						for(var i=spaceX;i<posX;++i){
+							moveDirection(38);
+						}
+					}
+					if(posX<spaceX){
+						for(var i=spaceX;i>posX;--i){
+							moveDirection(40);
+						}
+					}
+				}
+			}
+			function moveDirection(direction){
+				var canMove=false;
+				switch(direction){
+					case 37:
+						if(spaceY<size-1){
+							canMove=true;
+							var block=document.getElementById(blocks[spaceX*size+spaceY+1]);
+							var space=document.getElementById(blocks[spaceX*size+spaceY]);
+							blocks[spaceX*size+spaceY]=blocks[spaceX*size+spaceY+1];
+							blocks[spaceX*size+spaceY+1]=0;
+						}
+						break;
+					case 38:
+						if(spaceX<size-1){
+							canMove=true;
+							var block=document.getElementById(blocks[(spaceX+1)*size+spaceY]);
+							var space=document.getElementById(blocks[spaceX*size+spaceY]);
+							blocks[spaceX*size+spaceY]=blocks[(spaceX+1)*size+spaceY];
+							blocks[(spaceX+1)*size+spaceY]=0;
+						}
+						break;
+					case 39:
+						if(spaceY>0){
+							canMove=true;
+							var block=document.getElementById(blocks[spaceX*size+spaceY-1]);
+							var space=document.getElementById(blocks[spaceX*size+spaceY]);
+							blocks[spaceX*size+spaceY]=blocks[spaceX*size+spaceY-1];
+							blocks[spaceX*size+spaceY-1]=0;
+						}
+						break;
+					case 40:
+						if(spaceX>0){
+							canMove=true;
+							var block=document.getElementById(blocks[(spaceX-1)*size+spaceY]);
+							var space=document.getElementById(blocks[spaceX*size+spaceY]);
+							blocks[spaceX*size+spaceY]=blocks[(spaceX-1)*size+spaceY];
+							blocks[(spaceX-1)*size+spaceY]=0;
+						}
+						break;
+					default:break;
+				}
+				if(canMove && direction>=37 && direction<=40){
+					space.id=block.id;
+					space.innerHTML=block.innerHTML;
+					space.removeAttribute("disabled");
+					space.setAttribute("style",block.getAttribute("style"));
+					block.id="0";
+					block.innerHTML="";
+					block.disabled="true";
+					block.style.background="none";
+					block.style.border="none";
+					spaceX=parseInt(block.getAttribute("posX"));
+					spaceY=parseInt(block.getAttribute("posY"));
+					for(var i=0;i<size*size-1;){
+						if(blocks[i]!=++i){
+							return;
+						}
+					}
+					if(!runState)
+						alert("finish!");
+				}
+			}
+			document.onkeydown=function(event){
+				if(runState)	return;
+				var e = event || window.event || arguments.callee.caller.arguments[0];
+			//	keyCode 37 = Left
+			//	keyCode 38 = Up
+			//	keyCode 39 = Right
+			//	keyCode 40 = Down
+				if(e && e.keyCode==13){
+					initialGame();
+				}
+				if(e && (e.keyCode>=37 && e.keyCode<=40)){
+					e.preventDefault && e.preventDefault();
+					e.returnValue=false;
+					e.stopPropagation && e.stopPropagation();
+					moveDirection(e.keyCode);
+				}
+			};
+			function valueH(num,pos){
+				return Math.abs(Math.floor(pos/size)-Math.floor((num-1)/size))+Math.abs(Math.floor(pos%size)-Math.floor((num-1)%size));
+			}
+			function findPath(){
+				for(var i=0;i<size*size;++i){
+					oper[i]=0x0F;
+				}
+				for(var i=0;i<size;++i){
+					oper[i]&=0x0B;
+					oper[size*size-i-1]&=0x07;
+					oper[i*size]&=0x0E;
+					oper[i*size+size-1]&=0x0D;
+				}
+				var state=blocks.slice();
+				var h=0,g=0;
+				var sp=spaceX*size+spaceY;
+				for(var i=0;i<size*size;++i){
+					if(state[i]>0){
+						h+=valueH(state[i],i);
+					}
+				}
+				var rooth=h;
+				var f = g + h;
+				var limit = f;
+				var dircpt=['r','l','d','u'];
+				var dircsp=[-1,1,-size,size];
+				while(limit < size * size * 10){
+					lastop = 0x00;
+					child = 3;
+					while(true){
+						opbyte = oper[sp] ^ lastop;
+						while (child >= 0){
+							if (h == 0){
+								for (var i = 0; i < g; ++i){
+									path[i] = dircpt[path[i] - 1];
+								}
+								path[g] = 0;
+								return path;
+							}
+							if ((opbyte >> child) & 0x01){
+								//计算操作child的dh
+								index = sp + dircsp[child];
+								dh = valueH(state[index],sp)-valueH(state[index],index);
+								if (f + dh + 1 <= limit){//在当前阈值内
+									//更新结点
+									state[sp] = state[index];
+									state[index] = 0;
+									sp = index;
+									g++;
+									h += dh;
+									f += dh + 1;
+									path[g-1] = child + 1;
+									//修改其他环境变量
+									lastop = (0x01 << (child ^ 0x01));
+									opbyte = oper[sp] ^ lastop;
+									child = 3;
+									continue;
+								}
+							}
+							child--;
+						}
+						if (h == rooth&&g == 0){
+							break;
+						}
+						//回溯
+						child = path[g - 1] - 1;
+						index = sp - dircsp[child];
+						dh = valueH(state[index],sp)-valueH(state[index],index);
+						--g;
+						h += dh;
+						f += (dh - 1);
+						state[sp] = state[index];
+						state[index] = 0;
+						sp = index;
+						--child;
+						if (h == rooth&&g == 0){
+							lastop = 0x00;
+						}
+						else{
+							lastop = (0x01 << ((path[g-1] - 1) ^ 0x01));
+						}
+					}
+					limit += 2;
+				}
+			}
+			function usePath(){
+				switch(path[pathIndex]){
+					case 'l':moveDirection(37);break;
+					case 'u':moveDirection(38);break;
+					case 'r':moveDirection(39);break;
+					case 'd':moveDirection(40);break;
+					default:
+						document.getElementById("auto").removeAttribute("disabled");
+						document.getElementById("initial").removeAttribute("disabled");
+						runState=false;
+						path=new Array();
+						pathIndex=0;
+						return;
+				}
+				++pathIndex;
+				setTimeout('usePath()',500);
+			}
+			function autoRun(){
+				runState=true;
+				document.getElementById("auto").disabled="true";
+				document.getElementById("initial").disabled="true";
+				findPath();
+				usePath();
+			}
+		</script>
+	</head>
+	<body onload="initialGame()">
+		<a href="javascript:if(history.length>1){history.back();}else{window.location.href='/';}">返回主页</a>
+		<div align="center">
+			<h1>滑块拼图</h1>
+			<p>点击方块或者使用方向键移动滑块，使之正常排序，如：</p>
+			<div id="example">
+				<p>[ 1, 2, 3]<br/>[ 4, 5, 6]<br/>[ 7, 8, _]</p>
+			</div>
+			<label>大小N*N：</label>
+			<input type="input" id="inputSize" value="3"/>
+			<button id="initial" onclick="initialGame()">初始化</button>
+			<button id="auto" onclick="autoRun()">自动运行</button>
+			<p>自动运行一旦开始不能终止，并且，size>3时求解很慢</p>
+		</div>
+		<br/>
+		<div id="ground" align="center" style="background-color:gray; margin:auto;">
+		</div>
+	</body>
+</html>
