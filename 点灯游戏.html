@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>点灯游戏</title>
+		<style type="text/css">
+			.ground{
+				background-color:gray;
+				margin-left:auto;
+				margin-right:auto;
+				padding:0px;
+				width:500px;
+				height:500px;
+			}
+		</style>
+		<script type="text/javascript">
+			var size=5;
+			var state=new Array();
+			var mode="suiji";
+			function initialGame(){
+				newsize=parseInt(document.getElementById("size_set").value);
+				if (isNaN(newsize)||newsize<2||newsize>10){
+					alert("请输入2到10的整数");
+					document.getElementById("size_set").value=size;
+					return;
+				}
+				size=newsize;
+				var mainFrame=document.getElementById("mainFrame");
+				mainFrame.innerHTML="";
+				var length=500/size;
+				for(var i=0;i<size;++i){
+					state[i]=new Array();
+					for(var j=0;j<size;++j){
+						if(mode=="suiji"){
+							state[i][j]=Math.round(Math.random());
+						}else if(mode=="dianliang"){
+							state[i][j]=0;
+						}
+						var newButton=document.createElement("button");
+						newButton.style.width=length+"px";
+						newButton.style.height=length+"px";
+						newButton.style.float="left";
+						if(state[i][j]==1){
+							newButton.style.background="yellow";
+						}else{
+							newButton.style.background="black";
+						}
+						newButton.setAttribute("onclick","changeLight("+i+","+j+")");
+						mainFrame.appendChild(newButton);
+					}
+				}
+			}
+			function changeLight(i,j){
+				var mainFrame=document.getElementById("mainFrame");
+				var index=i*size+j;
+				state[i][j]^=1;
+				if(state[i][j]==1){
+					mainFrame.childNodes[index].style.background="yellow";
+				}else{
+					mainFrame.childNodes[index].style.background="black";
+				}
+				if(i>0){
+					state[i-1][j]^=1;
+					if(state[i-1][j]==1){
+						mainFrame.childNodes[index-size].style.background="yellow";
+					}else{
+						mainFrame.childNodes[index-size].style.background="black";
+					}
+				}
+				if(i<size-1){
+					state[i+1][j]^=1;
+					if(state[i+1][j]==1){
+						mainFrame.childNodes[index+size].style.background="yellow";
+					}else{
+						mainFrame.childNodes[index+size].style.background="black";
+					}
+				}
+				if(j>0){
+					state[i][j-1]^=1;
+					if(state[i][j-1]==1){
+						mainFrame.childNodes[index-1].style.background="yellow";
+					}else{
+						mainFrame.childNodes[index-1].style.background="black";
+					}
+				}
+				if(j<size-1){
+					state[i][j+1]^=1;
+					if(state[i][j+1]==1){
+						mainFrame.childNodes[index+1].style.background="yellow";
+					}else{
+						mainFrame.childNodes[index+1].style.background="black";
+					}
+				}
+				if(isSuccess()){
+					alert("恭喜成功");
+					initialGame();
+				}
+			}
+			function isSuccess(){
+				var st;
+				if(mode=="suiji"){
+					st=state[0][0];
+				}else if(mode=="dianliang"){
+					st=1;
+				}
+				for(var i=0;i<size;++i){
+					for(var j=0;j<size;++j){
+						if(state[i][j]!=st){
+							return false;
+						}
+					}
+				}
+				return true;
+			}
+			function changeMode(){
+				var mbtn=document.getElementById("btnMode");
+				if(mode=="suiji"){
+					mode="dianliang";
+					mbtn.innerHTML="模式：点亮";
+				}else if(mode=="dianliang"){
+					mode="suiji";
+					mbtn.innerHTML="模式：随机";
+				}
+				initialGame();
+				return;
+			}
+		</script>
+	</head>
+	<body onload="initialGame()">
+		<div style="margin:80px">
+			<a href="/essays.html#essay005">返回主页</a>
+			<h1 align="center">点灯游戏</h1>
+			<p align="center">点击一个方块，将改变相邻上下左右四个方块和当前方块的亮灭。随机模式下，当灯全亮或者全灭，即为胜利。点亮模式下，当灯全亮，即为胜利</p>
+			<div align="center">
+				<label>尺寸：</label>
+				<input type="input" id="size_set" value="3">
+				<button onclick="initialGame()" id="btnInit">初始化</button>
+				<button onclick="changeMode()" id="btnMode">模式：随机</button>
+			</div>
+			<div class="ground" id="mainFrame">
+			</div>
+		</div>
+	</body>
+</html>
