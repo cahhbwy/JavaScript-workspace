@@ -20,8 +20,8 @@ window.clearInterval(bx);
 //研究生选课 gradGetDxkc.do
 var lessons=['CS0514801'];
 var run_id=self.setInterval(function(){
-    for (lesson in lessons){
-        xk(lessons);
+    for (i in lessons){
+        xk(lessons[i]);
     }
 },1000);
 window.clearInterval(run_id);
